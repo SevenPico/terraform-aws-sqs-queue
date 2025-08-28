@@ -64,44 +64,72 @@ module "sqs" {
 }
 
 
-module "queue_policy" {
+data "aws_iam_policy_document" "queue_policy" {
   count = local.policy_enabled ? 1 : 0
 
-  source  = "cloudposse/iam-policy/aws"
-  version = "2.0.1"
-
-  iam_policy = [
-    for policy in var.iam_policy : {
-      policy_id = policy.policy_id
-      version   = policy.version
-
-      statements = [
-        for statement in policy.statements :
-        merge(
+  dynamic "statement" {
+    for_each = flatten([
+      for policy in var.iam_policy : [
+        for statement in policy.statements : merge(
           statement,
           {
             resources = [module.sqs.queue_arn]
           },
           var.iam_policy_limit_to_current_account ? {
-            conditions = concat(statement.conditions, [
-              {
+            condition = concat(
+              lookup(statement, "conditions", []),
+              [{
                 test     = "StringEquals"
                 variable = "aws:SourceAccount"
                 values   = [local.account_id]
-              }
-            ])
-          } : {}
+              }]
+            )
+            } : {
+            condition = lookup(statement, "conditions", [])
+          }
         )
       ]
-    }
-  ]
+    ])
 
-  context = module.context.self
+    content {
+      sid           = lookup(statement.value, "sid", null)
+      effect        = lookup(statement.value, "effect", null)
+      actions       = lookup(statement.value, "actions", null)
+      not_actions   = lookup(statement.value, "not_actions", null)
+      resources     = lookup(statement.value, "resources", null)
+      not_resources = lookup(statement.value, "not_resources", null)
+
+      dynamic "principals" {
+        for_each = lookup(statement.value, "principals", [])
+        content {
+          type        = principals.value.type
+          identifiers = principals.value.identifiers
+        }
+      }
+
+      dynamic "not_principals" {
+        for_each = lookup(statement.value, "not_principals", [])
+        content {
+          type        = not_principals.value.type
+          identifiers = not_principals.value.identifiers
+        }
+      }
+
+      dynamic "condition" {
+        for_each = lookup(statement.value, "condition", [])
+        content {
+          test     = condition.value.test
+          variable = condition.value.variable
+          values   = condition.value.values
+        }
+      }
+    }
+  }
 }
 
 resource "aws_sqs_queue_policy" "sqs_queue_policy" {
   count = local.policy_enabled ? 1 : 0
 
   queue_url = module.sqs.queue_url
-  policy    = one(module.queue_policy[*].json)
+  policy    = one(data.aws_iam_policy_document.queue_policy[*].json)
 }
