@@ -15,11 +15,31 @@
 ## ----------------------------------------------------------------------------
 
 ## ----------------------------------------------------------------------------
-##  ./_outputs.tf
+##  ./examples/complete/terraform.tfvars.example
 ##  This file contains code written only by SevenPico, Inc.
 ## ----------------------------------------------------------------------------
 
-output "sqs_queue" {
-  description = "The SQS queue."
-  value       = module.sqs
+# Copy this file to terraform.tfvars and customize the values below
+
+# Context Configuration
+namespace   = "sp"
+environment = "dev"
+stage       = "test"
+name        = "sqs-example"
+
+# Additional tags
+tags = {
+  "Owner"       = "platform-team"
+  "Environment" = "development"
+  "Project"     = "sqs-queue-module"
+  "Repository"  = "terraform-aws-sqs-queue"
 }
+
+# Optional: Override default label order
+# label_order = ["namespace", "environment", "stage", "name"]
+
+# Optional: Set custom delimiter
+# delimiter = "-"
+
+# Optional: Add attributes
+# attributes = ["v1"]
