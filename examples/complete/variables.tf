@@ -15,11 +15,10 @@
 ## ----------------------------------------------------------------------------
 
 ## ----------------------------------------------------------------------------
-##  ./_outputs.tf
+##  ./examples/complete/variables.tf
 ##  This file contains code written only by SevenPico, Inc.
 ## ----------------------------------------------------------------------------
 
-output "sqs_queue" {
-  description = "The SQS queue."
-  value       = module.sqs
-}
+# No additional variables needed for this example.
+# All context variables are inherited from _context.tf
+# and the example uses default values with specific overrides in main.tf

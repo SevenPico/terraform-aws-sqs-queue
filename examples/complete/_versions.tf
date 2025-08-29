@@ -15,10 +15,16 @@
 ## ----------------------------------------------------------------------------
 
 ## ----------------------------------------------------------------------------
-##  ./examples/complete/_providers.tf
+##  ./examples/complete/_versions.tf
 ##  This file contains code written only by SevenPico, Inc.
 ## ----------------------------------------------------------------------------
 
-provider "aws" {
-  region = "us-east-1"
+terraform {
+  required_version = ">= 1.1.5"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 4.12.1"
+    }
+  }
 }
